@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCAnarchy — play.mcanarchy.net</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* panorama palette — dusk landscape */
+    --sky-top:#0f1a33;
+    --sky-mid:#2c3560;
+    --sky-horizon:#c9713f;
+    --sun:#ffd77a;
+    --hill-far:#33425a;
+    --hill-mid:#2c3f2c;
+    --hill-near:#1c2b1a;
+    --tree-dark:#16210f;
+    --tree-light:#233414;
+    --cloud:rgba(255,235,210,0.16);
+
+    /* brand accent — carried from the server's existing identity */
+    --void:#0d0c0a;
+    --charred:#1c1815;
+    --edge:#332c24;
+    --redstone:#e2402f;
+    --redstone-dim:#8f2b21;
+    --gold:#d9a441;
+    --ash:#a39a8c;
+    --ash-dim:#6b6255;
+    --lichen:#6fae5c;
+    --white:#f3ede2;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--void);
+    color:var(--white);
+    font-family:'Inter', sans-serif;
+    overflow-x:hidden;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important;}
+  }
+  a{ color:inherit; }
+
+  /* ============ PANORAMA HERO ============ */
+  .hero{
+    position:relative;
+    min-height:82vh;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(226,64,47,0.09), transparent 60%),
+      radial-gradient(ellipse 700px 400px at 90% 10%, rgba(217,164,65,0.05), transparent 60%);
+    padding:64px 24px;
+  }
+
+  /* ============ HERO CONTENT ============ */
+  .hero-content{
+    position:relative;
+    z-index:5;
+    text-align:center;
+    padding:0 20px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin-top:4vh;
+  }
+  .title{
+    font-family:'Press Start 2P', monospace;
+    font-size:clamp(28px, 7.5vw, 64px);
+    letter-spacing:2px;
+    color:var(--white);
+    text-shadow:
+      4px 4px 0 var(--redstone-dim),
+      0 0 26px rgba(0,0,0,0.6);
+    margin-bottom:14px;
+  }
+  .subtitle{
+    font-family:'JetBrains Mono', monospace;
+    font-size:clamp(11px, 2.2vw, 14px);
+    color:var(--gold);
+    letter-spacing:2px;
+    text-transform:uppercase;
+    margin-bottom:36px;
+    text-shadow:0 2px 6px rgba(0,0,0,0.6);
+  }
+
+  .status-widget{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    color:var(--ash);
+    background:var(--charred);
+    border:1px solid var(--edge);
+    border-radius:3px;
+    padding:8px 14px;
+    margin-bottom:26px;
+  }
+  .status-dot{
+    width:8px; height:8px;
+    border-radius:50%;
+    background:var(--ash-dim);
+    flex-shrink:0;
+  }
+  .status-dot.online{ background:var(--lichen); box-shadow:0 0 6px var(--lichen); }
+  .status-dot.offline{ background:var(--redstone); box-shadow:0 0 6px var(--redstone); }
+  .status-widget .count{ color:var(--gold); font-weight:700; }
+  .mc-buttons{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    width:min(92vw, 420px);
+  }
+  .mc-btn{
+    font-family:'Press Start 2P', monospace;
+    font-size:clamp(10px, 2.6vw, 13px);
+    color:var(--white);
+    background:#4a4438;
+    border-top:3px solid #766e5c;
+    border-left:3px solid #766e5c;
+    border-right:3px solid #211e18;
+    border-bottom:3px solid #211e18;
+    padding:16px 14px;
+    cursor:pointer;
+    text-align:center;
+    letter-spacing:1px;
+    transition:filter 0.1s, transform 0.05s;
+    image-rendering:pixelated;
+    text-decoration:none;
+    display:block;
+  }
+  .mc-btn:hover{ filter:brightness(1.25); }
+  .mc-btn:active{ transform:translateY(2px); }
+  .mc-btn:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+  .mc-btn.primary{
+    background:var(--redstone-dim);
+    border-top-color:#f16650;
+    border-left-color:#f16650;
+  }
+  .mc-btn.primary:hover{ filter:brightness(1.2); }
+  .mc-btn .sub{
+    display:block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    color:var(--lichen);
+    margin-top:6px;
+    letter-spacing:0;
+  }
+  .mc-btn.copied{ background:var(--lichen); border-color:#9fe08a; color:var(--void); }
+
+  .scroll-hint{
+    position:absolute;
+    bottom:22px; left:50%;
+    transform:translateX(-50%);
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--ash);
+    letter-spacing:2px;
+    z-index:5;
+    opacity:0.75;
+  }
+
+  /* ============ HAZARD DIVIDER ============ */
+  .hazard{
+    height:12px;
+    background:repeating-linear-gradient(
+      -45deg,
+      var(--gold), var(--gold) 16px,
+      var(--void) 16px, var(--void) 32px
+    );
+    opacity:0.85;
+  }
+
+  /* ============ BELOW FOLD ============ */
+  .wrap{ max-width:1100px; margin:0 auto; padding:0 24px; }
+
+  .section-head{ text-align:center; padding:56px 24px 8px; }
+  .section-head h2{
+    font-family:'Press Start 2P', monospace;
+    font-size:clamp(18px, 3.4vw, 28px);
+    color:var(--white);
+    margin-bottom:10px;
+  }
+  .section-head p{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    color:var(--ash-dim);
+  }
+
+  .features{
+    max-width:1100px; margin:0 auto;
+    padding:30px 24px 56px;
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:14px;
+  }
+  .feat{
+    background:var(--charred);
+    border:1px solid var(--edge);
+    border-radius:4px;
+    padding:18px 16px;
+    transition:border-color 0.15s, transform 0.15s;
+  }
+  .feat:hover{ border-color:var(--redstone); transform:translateY(-3px); }
+  .feat .cmd{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--gold);
+    margin-bottom:8px;
+    display:block;
+  }
+  .feat h3{ font-size:14px; font-weight:700; margin-bottom:6px; color:var(--white); }
+  .feat p{ font-size:12px; color:var(--ash); line-height:1.5; }
+
+  .rule{
+    max-width:680px; margin:0 auto;
+    padding:64px 24px;
+    text-align:center;
+  }
+  .rule .num{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; letter-spacing:3px;
+    color:var(--ash-dim);
+    margin-bottom:16px;
+  }
+  .rule h2{
+    font-family:'Press Start 2P', monospace;
+    font-size:clamp(16px, 3.6vw, 26px);
+    line-height:1.5;
+    color:var(--white);
+  }
+  .rule h2 em{ font-style:normal; color:var(--redstone); }
+  .rule p{
+    margin-top:18px; color:var(--ash);
+    font-size:13.5px; line-height:1.7;
+    max-width:500px; margin-left:auto; margin-right:auto;
+  }
+
+  footer{ padding:44px 24px 36px; text-align:center; }
+  footer .ip{
+    font-family:'JetBrains Mono', monospace;
+    color:var(--lichen); font-size:15px; font-weight:700;
+  }
+  footer .note{
+    margin-top:10px; font-size:11px; color:var(--ash-dim);
+    font-family:'JetBrains Mono', monospace;
+  }
+
+  @media (max-width:760px){
+    .features{ grid-template-columns:repeat(2, 1fr); }
+  }
+  @media (max-width:460px){
+    .features{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-content">
+    <div class="title">MCANARCHY</div>
+    <div class="subtitle">// no claims · no protection · no mercy</div>
+    <div class="status-widget" id="statusWidget">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Checking server status...</span>
+    </div>
+    <div class="mc-buttons">
+      <button class="mc-btn primary" id="copyJava">
+        Copy Java IP
+        <span class="sub" id="ipLabel">play.mcanarchy.net</span>
+      </button>
+      <button class="mc-btn" id="copyBedrock">
+        Copy Bedrock Address
+        <span class="sub" id="bedrockLabel">bedrock.mcanarchy.net : 32197</span>
+      </button>
+      <a class="mc-btn" href="#features">View Features</a>
+    </div>
+  </div>
+
+  <div class="scroll-hint">▼ scroll</div>
+</section>
+
+<div class="hazard"></div>
+
+<div class="section-head" id="features">
+  <h2>Built to survive it</h2>
+  <p>// everything you need to make money, make enemies, and make it out alive</p>
+</div>
+
+<div class="features">
+  <div class="feat">
+    <span class="cmd">/shop</span>
+    <h3>Server Shop</h3>
+    <p>Buy and sell almost anything instantly — no waiting on other players.</p>
+  </div>
+  <div class="feat">
+    <span class="cmd">/ah</span>
+    <h3>Auction House</h3>
+    <p>List your loot for other players to buy at whatever price you set.</p>
+  </div>
+  <div class="feat">
+    <span class="cmd">/orders</span>
+    <h3>Buy Orders</h3>
+    <p>Post a price for what you need — anyone can fill it and get paid instantly.</p>
+  </div>
+  <div class="feat">
+    <span class="cmd">/bounty</span>
+    <h3>Bounties</h3>
+    <p>Put a price on someone's head. Collect the reward when it's done.</p>
+  </div>
+  <div class="feat">
+    <span class="cmd">/team</span>
+    <h3>Teams</h3>
+    <p>Team up, share a base, and watch each other's backs. Or don't.</p>
+  </div>
+  <div class="feat">
+    <span class="cmd">/rtp</span>
+    <h3>Random Teleport</h3>
+    <p>Drop into fresh, unexplored terrain across the overworld, nether, or end.</p>
+  </div>
+  <div class="feat">
+    <span class="cmd">shard tools</span>
+    <h3>Amethyst Gear</h3>
+    <p>Mine a 3×3 area in a single swing with the server's signature tools.</p>
+  </div>
+  <div class="feat">
+    <span class="cmd">press F</span>
+    <h3>Quick Menu</h3>
+    <p>One key opens everything — homes, shop, teleport, stats, and more.</p>
+  </div>
+</div>
+
+<div class="hazard"></div>
+
+<section class="rule">
+  <div class="num">§ RULE 01 OF 02</div>
+  <h2>There <em>is</em> no rule one.</h2>
+  <p>No land claims. No grief protection. No safe zones outside spawn. What you build, you defend — that's the whole game. Everyone starts from nothing, on the same terms.</p>
+  <div class="num" style="margin-top:40px;">§ RULE 02 OF 02</div>
+  <h2>No <em>hacking</em>.</h2>
+  <p>X-ray, hacked clients, and exploits get you banned — full stop. Skill and cunning are fair game. Cheating isn't.</p>
+</section>
+
+<footer>
+  <div class="ip">play.mcanarchy.net</div>
+  <div class="note">// java + bedrock · press F in-game for the full menu</div>
+</footer>
+
+<script>
+  function setupCopy(btnId, labelId, text){
+    const btn = document.getElementById(btnId);
+    const label = document.getElementById(labelId);
+    btn.addEventListener('click', () => {
+      navigator.clipboard.writeText(text).then(() => {
+        const original = label.textContent;
+        label.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          label.textContent = original;
+          btn.classList.remove('copied');
+        }, 1400);
+      });
+    });
+  }
+  setupCopy('copyJava', 'ipLabel', 'play.mcanarchy.net');
+  setupCopy('copyBedrock', 'bedrockLabel', 'bedrock.mcanarchy.net');
+
+  // Live player count, pulled from mcsrvstat.us
+  async function updateStatus(){
+    const dot = document.getElementById('statusDot');
+    const text = document.getElementById('statusText');
+    try {
+      const res = await fetch('https://api.mcsrvstat.us/3/play.mcanarchy.net');
+      const data = await res.json();
+      if (data.online) {
+        dot.className = 'status-dot online';
+        const count = data.players ? data.players.online : 0;
+        const max = data.players ? data.players.max : '?';
+        text.innerHTML = `Online now — <span class="count">${count}</span> / ${max} players`;
+      } else {
+        dot.className = 'status-dot offline';
+        text.textContent = 'Server offline';
+      }
+    } catch (e) {
+      dot.className = 'status-dot';
+      text.textContent = 'Status unavailable';
+    }
+  }
+  updateStatus();
+  setInterval(updateStatus, 60000); // refresh every 60s
+</script>
+
+</body>
+</html>
